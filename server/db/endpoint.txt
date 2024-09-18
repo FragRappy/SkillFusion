@@ -1,0 +1,31 @@
+API endpoint 	*** get //récupérer - post // créer - patch  //modifier - delete  //supprimer
+
+	/lessons
+		get /lessons
+		post /lessons
+		patch /lessons/:{lesson_id} 
+		delete /lessons/:{lesson_id} 
+	/categories
+		get /categories
+		post /categories
+	/steps
+		get /steps
+		post /steps:{lesson_id}
+		patch /steps:{lesson_id}
+		delete /steps:{lesson_id}
+	/users
+		get /users
+		post /users
+		patch /users:{user_id}
+		delete /users:{user_id}
+	/rates
+		get /rates:{lesson_id}
+		post /rates:{lessons_id}
+	/likes
+		get /likes:{comment_id}
+		post /likes:{comment_id}
+	/comments
+		get /comments
+		post /comments/:{user_id}/:{lessons_id} 
+		patch /comments/:{user_id}/:{lessons_id} 
+		delete /comments/:{user_id}/:{lessons_id} 

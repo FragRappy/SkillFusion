@@ -1,0 +1,133 @@
+import React, { useEffect, useState } from 'react';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import Container from '@mui/material/Container';
+import CssBaseline from '@mui/material/CssBaseline';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import Alert from '@mui/material/Alert';
+import Header from '../App/Header';
+import Footer from '../App/Footer';
+import Profil from './Profile';
+import MyLesson from './Mylessons';
+import Error from '../Error'
+
+function CustomTabPanel(props) {
+    const { children, value, index, ...other } = props;
+
+    return (
+        <div
+            style={{width: '100%'}}
+            role="tabpanel"
+            hidden={value !== index}
+            id={`simple-tabpanel-${index}`}
+            aria-labelledby={`simple-tab-${index}`}
+            {...other}
+        >
+            {value === index && (
+                <Box sx={{ p: 3}}>
+                    <Typography variant='p'>{children}</Typography>
+                </Box>
+            )}
+        </div>
+    );
+}
+
+function a11yProps(index) {
+    return {
+        id: `simple-tab-${index}`,
+        'aria-controls': `simple-tabpanel-${index}`,
+    };
+}
+
+const Account = () => {
+    const [mode, setMode] = useState(localStorage.getItem('theme-color') || 'light');
+    const [value, setValue] = useState(0);
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [update, setUpdate] = useState({});
+    const [role, setRole] = useState(null)
+  
+    const getUser = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`http://fragrappy-server.eddi.cloud:8080/users`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`, 
+                }
+            });
+            const { data, status, message} = await response.json();
+    
+            if(status === "Succès") {
+                setUser(data);
+                setRole(data.role);
+            } else {
+                setError(message);
+                setRole(null);
+            }
+        } catch(error) {
+            setError(error.message);
+        } finally {
+            setLoading(false);
+        };
+    };
+
+    const handleChange = (event, newValue) => {
+        setValue(newValue);
+    };
+
+    const theme = createTheme({
+        palette: {
+          mode: mode
+        },
+    })
+
+    const toggleColorMode = () => {
+        setMode(prev => prev === 'light' ? 'dark' : 'light');
+    };
+
+    useEffect(()=>{
+        getUser();
+    }, [update]);
+
+    return (
+        <ThemeProvider theme={theme} >
+            <Container component="main" maxWidth="lg">
+                <CssBaseline />
+                <Header mode={mode} toggleColorMode={toggleColorMode}/>
+                {loading || role && role === 'admin' || role === 'instructor' || role === 'member' ? 
+                    <Box sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        pt: { xs: 14, sm: 20 },
+                        pb: { xs: 8, sm: 12 },
+                        }}
+                    >
+                        {error && <Alert severity="error">{error}</Alert>}
+                        <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%'}}>
+                            <Tabs centered value={value} onChange={handleChange} aria-label="Menu Compte" >
+                                <Tab label="Mon profil" {...a11yProps(0)} aria-label="Mon profil" />
+                                <Tab label="Suivi des cours" {...a11yProps(1)} aria-label="Suivi des cours" />
+                            </Tabs>
+                        </Box>
+                        <CustomTabPanel value={value} index={0} >
+                        {user && <Profil user={user} setUpdate={setUpdate} />}
+                        </CustomTabPanel>
+                        <CustomTabPanel value={value} index={1}>
+                            <MyLesson />
+                        </CustomTabPanel>
+                    </Box> : 
+                    error && <Error />
+                }
+            </Container>
+            <Footer />
+        </ThemeProvider>
+    );
+};
+
+export default Account;
